@@ -83,7 +83,7 @@ static void fix_values(s32 *values) {
 	}
 }
 
-static u8 num[58][8] = {{ 1,1,1,1,1,1,0,0 },  // 0
+static u8 num[60][8] = {{ 1,1,1,1,1,1,0,0 },  // 0
 						{ 0,1,1,0,0,0,0,0 },  // 1
 						{ 1,1,0,1,1,0,1,0 },  // 2
 						{ 1,1,1,1,0,0,1,0 },  // 3
@@ -95,6 +95,8 @@ static u8 num[58][8] = {{ 1,1,1,1,1,1,0,0 },  // 0
 						{ 1,1,1,0,0,1,1,0 },  // 9
 						{ 0,0,0,0,0,0,0,1 },  // dot
 						{ 0,0,0,0,0,0,0,0 },  // blank
+						{ 1,1,1,1,0,0,0,0 },  // ]
+						{ 0,0,0,1,0,0,0,0 },  // _
 						{ 1,1,1,0,1,1,1,0 },  // A
 						{ 1,1,1,1,1,1,1,0 },  // B
 						{ 1,0,0,1,1,1,0,0 },  // C
@@ -146,9 +148,21 @@ static u8 seg_bits(u8 value) {
 	int i;
 	u8 bits = 0;
 	u8 num_index = 11; // defaults to blank
-	// convert ascii value
+	// colon
 	if(value==46) {
 		num_index = 10;
+	}
+	// opening square bracket -> C
+	else if(value==91) {
+		num_index = 16;
+	}
+	// closing square bracket
+	else if(value==92) {
+		num_index = 12;
+	}
+	// underscore
+	else if(value==95) {
+		num_index = 13;
 	}
 	// ascii numbers
 	else if(value>47 && value<58) {
@@ -156,11 +170,11 @@ static u8 seg_bits(u8 value) {
 	}
 	// capital letters ASCII 65 - 90
 	else if(value>64 && value<91) {
-		num_index=value-53;
+		num_index=value-51;
 	}
 	// lower case letters ASCII 98 - 117
 	else if(value>97 && value<118) {
-		num_index=value-60;
+		num_index=value-58;
 	}
 
 	for( i=0; i<8; i++) {
