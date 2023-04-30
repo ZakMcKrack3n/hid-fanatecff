@@ -83,7 +83,7 @@ static void fix_values(s32 *values) {
 	}
 }
 
-static u8 num[11][8] = {  { 1,1,1,1,1,1,0,0 },  // 0
+static u8 num[58][8] = {{ 1,1,1,1,1,1,0,0 },  // 0
 						{ 0,1,1,0,0,0,0,0 },  // 1
 						{ 1,1,0,1,1,0,1,0 },  // 2
 						{ 1,1,1,1,0,0,1,0 },  // 3
@@ -93,14 +93,78 @@ static u8 num[11][8] = {  { 1,1,1,1,1,1,0,0 },  // 0
 						{ 1,1,1,0,0,0,0,0 },  // 7
 						{ 1,1,1,1,1,1,1,0 },  // 8
 						{ 1,1,1,0,0,1,1,0 },  // 9
-						{ 0,0,0,0,0,0,0,1}};  // dot
+						{ 0,0,0,0,0,0,0,1 },  // dot
+						{ 0,0,0,0,0,0,0,0 },  // blank
+						{ 1,1,1,0,1,1,1,0 },  // A
+						{ 1,1,1,1,1,1,1,0 },  // B
+						{ 1,0,0,1,1,1,0,0 },  // C
+						{ 0,0,0,0,0,0,0,0 },  // D - placeholder/blank
+						{ 1,0,0,1,1,1,1,0 },  // E
+						{ 1,0,0,0,1,1,1,0 },  // F
+						{ 1,0,1,1,1,1,0,0 },  // G
+						{ 0,1,1,0,1,1,1,0 },  // H
+						{ 0,1,1,0,0,0,0,0 },  // I
+						{ 0,1,1,1,0,0,0,0 },  // J
+						{ 0,0,0,0,0,0,0,0 },  // K - placeholder/blank
+						{ 0,0,0,1,1,1,0,0 },  // L
+						{ 0,0,0,0,0,0,0,0 },  // M - placeholder/blank
+						{ 0,0,0,0,0,0,0,0 },  // N - placeholder/blank
+						{ 1,1,1,1,1,1,0,0 },  // O
+						{ 1,1,0,0,1,1,1,0 },  // P
+						{ 0,0,0,0,0,0,0,0 },  // Q - placeholder/blank
+						{ 0,0,0,0,0,0,0,0 },  // R - placeholder/blank
+						{ 1,0,1,1,0,1,1,0 },  // S
+						{ 0,0,0,0,0,0,0,0 },  // T - placeholder/blank
+						{ 0,1,1,1,1,1,0,0 },  // U
+						{ 0,0,0,0,0,0,0,0 },  // V - placeholder/blank
+						{ 0,0,0,0,0,0,0,0 },  // W - placeholder/blank
+						{ 0,0,0,0,0,0,0,0 },  // X - placeholder/blank
+						{ 0,1,1,0,0,1,1,0 },  // Y
+						{ 1,1,0,1,1,0,1,0 },  // Z
+						{ 0,0,1,1,1,1,1,0 },  // b
+						{ 0,0,0,1,1,0,1,0 },  // c
+						{ 0,1,1,1,1,0,1,0 },  // d
+						{ 0,0,0,0,0,0,0,0 },  // e - placeholder/blank
+						{ 0,0,0,0,0,0,0,0 },  // f - placeholder/blank
+						{ 1,1,1,0,0,1,1,0 },  // g
+						{ 0,0,1,0,1,1,0,0 },  // h
+						{ 0,0,1,0,0,0,0,0 },  // i
+						{ 0,0,1,1,0,0,0,0 },  // j
+						{ 0,0,0,0,0,0,0,0 },  // k - placeholder/blank
+						{ 0,0,0,1,1,0,0,0 },  // l
+						{ 0,0,0,0,0,0,0,0 },  // m - placeholder/blank
+						{ 0,0,1,0,1,0,1,0 },  // n
+						{ 0,0,1,1,1,0,1,0 },  // o
+						{ 0,0,0,0,0,0,0,0 },  // p - placeholder/blank
+						{ 1,1,1,0,0,1,1,0 },  // q
+						{ 0,0,0,0,1,0,1,0 },  // r
+						{ 0,0,0,0,0,0,0,0 },  // s - placeholder/blank
+						{ 0,0,0,1,1,1,1,0 },  // t
+						{ 0,0,1,1,1,0,0,0 }}; // u
 
 static u8 seg_bits(u8 value) {
 	int i;
 	u8 bits = 0;
+	u8 num_index = 11; // defaults to blank
+	// convert ascii value
+	if(value==46) {
+		num_index = 10;
+	}
+	// ascii numbers
+	else if(value>47 && value<58) {
+		num_index=value-48;
+	}
+	// capital letters ASCII 65 - 90
+	else if(value>64 && value<91) {
+		num_index=value-53;
+	}
+	// lower case letters ASCII 98 - 117
+	else if(value>97 && value<118) {
+		num_index=value-60;
+	}
 
 	for( i=0; i<8; i++) {
-		if (num[value][i]) 
+		if (num[num_index][i])
 			bits |= 1 << i;
 	}
 	return bits;
@@ -272,12 +336,12 @@ static ssize_t ftec_set_display(struct device *dev, struct device_attribute *att
 	struct ftec_drv_data *drv_data;
 	unsigned long flags;
 	s32 *value;
-	s16 val;
-
-	if (kstrtos16(buf, 0, &val) != 0) {
-		hid_err(hid, "Invalid value %s!\n", buf);
-		return -EINVAL;
-	}
+//	s16 val;
+//
+//	if (kstrtos16(buf, 0, &val) != 0) {
+//		hid_err(hid, "Invalid value %s!\n", buf);
+//		return -EINVAL;
+//	}
 
 	drv_data = hid_get_drvdata(hid);
 	if (!drv_data) {
@@ -298,11 +362,11 @@ static ssize_t ftec_set_display(struct device *dev, struct device_attribute *att
 	value[5] = 0x00;
 	value[6] = 0x00;
 
-	if (val>=0) {
-		value[4] = seg_bits((val/100)%100);
-		value[5] = seg_bits((val/10)%10);
-		value[6] = seg_bits(val%10);
-	}
+//	if (val>=0) {
+		value[4] = seg_bits(buf[0]);
+		value[5] = seg_bits(buf[1]);
+		value[6] = seg_bits(buf[2]);
+//	}
 
 	send_report_request_to_device(drv_data);
 	spin_unlock_irqrestore(&drv_data->report_lock, flags);
