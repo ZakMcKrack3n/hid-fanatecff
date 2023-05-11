@@ -83,70 +83,81 @@ static void fix_values(s32 *values) {
 	}
 }
 
-static u8 num[60][8] = {{ 1,1,1,1,1,1,0,0 },  // 0
-						{ 0,1,1,0,0,0,0,0 },  // 1
-						{ 1,1,0,1,1,0,1,0 },  // 2
-						{ 1,1,1,1,0,0,1,0 },  // 3
-						{ 0,1,1,0,0,1,1,0 },  // 4
-						{ 1,0,1,1,0,1,1,0 },  // 5
-						{ 1,0,1,1,1,1,1,0 },  // 6
-						{ 1,1,1,0,0,0,0,0 },  // 7
-						{ 1,1,1,1,1,1,1,0 },  // 8
-						{ 1,1,1,0,0,1,1,0 },  // 9
-						{ 0,0,0,0,0,0,0,1 },  // dot
-						{ 0,0,0,0,0,0,0,0 },  // blank
-						{ 1,1,1,1,0,0,0,0 },  // ]
-						{ 0,0,0,1,0,0,0,0 },  // _
-						{ 1,1,1,0,1,1,1,0 },  // A
-						{ 1,1,1,1,1,1,1,0 },  // B
-						{ 1,0,0,1,1,1,0,0 },  // C
-						{ 0,0,0,0,0,0,0,0 },  // D - placeholder/blank
-						{ 1,0,0,1,1,1,1,0 },  // E
-						{ 1,0,0,0,1,1,1,0 },  // F
-						{ 1,0,1,1,1,1,0,0 },  // G
-						{ 0,1,1,0,1,1,1,0 },  // H
-						{ 0,1,1,0,0,0,0,0 },  // I
-						{ 0,1,1,1,0,0,0,0 },  // J
-						{ 0,0,0,0,0,0,0,0 },  // K - placeholder/blank
-						{ 0,0,0,1,1,1,0,0 },  // L
-						{ 0,0,0,0,0,0,0,0 },  // M - placeholder/blank
-						{ 0,0,0,0,0,0,0,0 },  // N - placeholder/blank
-						{ 1,1,1,1,1,1,0,0 },  // O
-						{ 1,1,0,0,1,1,1,0 },  // P
-						{ 0,0,0,0,0,0,0,0 },  // Q - placeholder/blank
-						{ 0,0,0,0,0,0,0,0 },  // R - placeholder/blank
-						{ 1,0,1,1,0,1,1,0 },  // S
-						{ 0,0,0,0,0,0,0,0 },  // T - placeholder/blank
-						{ 0,1,1,1,1,1,0,0 },  // U
-						{ 0,0,0,0,0,0,0,0 },  // V - placeholder/blank
-						{ 0,0,0,0,0,0,0,0 },  // W - placeholder/blank
-						{ 0,0,0,0,0,0,0,0 },  // X - placeholder/blank
-						{ 0,1,1,0,0,1,1,0 },  // Y
-						{ 1,1,0,1,1,0,1,0 },  // Z
-						{ 0,0,1,1,1,1,1,0 },  // b
-						{ 0,0,0,1,1,0,1,0 },  // c
-						{ 0,1,1,1,1,0,1,0 },  // d
-						{ 0,0,0,0,0,0,0,0 },  // e - placeholder/blank
-						{ 0,0,0,0,0,0,0,0 },  // f - placeholder/blank
-						{ 0,0,0,0,0,0,0,0 },  // g - placeholder/blank
-						{ 0,0,1,0,1,1,0,0 },  // h
-						{ 0,0,1,0,0,0,0,0 },  // i
-						{ 0,0,1,1,0,0,0,0 },  // j
-						{ 0,0,0,0,0,0,0,0 },  // k - placeholder/blank
-						{ 0,0,0,1,1,0,0,0 },  // l
-						{ 0,0,0,0,0,0,0,0 },  // m - placeholder/blank
-						{ 0,0,1,0,1,0,1,0 },  // n
-						{ 0,0,1,1,1,0,1,0 },  // o
-						{ 0,0,0,0,0,0,0,0 },  // p - placeholder/blank
-						{ 1,1,1,0,0,1,1,0 },  // q
-						{ 0,0,0,0,1,0,1,0 },  // r
-						{ 0,0,0,0,0,0,0,0 },  // s - placeholder/blank
-						{ 0,0,0,1,1,1,1,0 },  // t
-						{ 0,0,1,1,1,0,0,0 }}; // u
+/*
+ 8 7 6 5 4 3 2 1
+ 7 segment bits and dot
+      1
+    6   2
+      7
+    5   3
+      4   8
+ */
+
+static u8 ledbits[61] ={ 63, // 0
+						  6, // 1
+						 91, // 2
+						 87, // 3
+						102, // 4
+						109, // 5
+						125, // 6
+						  7, // 7
+						127, // 8
+						103, // 9
+						128, // dot
+						  0, // blank
+						 15, // ]
+						 64, // -
+						  8, // _
+						119, // A
+						127, // B
+						 57, // C
+						  0, // D - placeholder/blank
+						121, // E
+						113, // F
+						 61, // G
+						118, // H
+						  6, // I
+						 14, // J
+						  0, // K - placeholder/blank
+						 56, // L
+						  0, // M - placeholder/blank
+						  0, // N - placeholder/blank
+						 63, // O
+						115, // P
+						  0, // Q - placeholder/blank
+						  0, // R - placeholder/blank
+						109, // S
+						  0, // T - placeholder/blank
+						 62, // U
+						  0, // V - placeholder/blank
+						  0, // W - placeholder/blank
+						  0, // X - placeholder/blank
+						110, // Y
+						 91, // Z
+						124, // b
+						 88, // c
+						 94, // d
+						  0, // e - placeholder/blank
+						  0, // f - placeholder/blank
+						  0, // g - placeholder/blank
+						116, // h
+					      4, // i
+						 12, // j
+						  0, // k - placeholder/blank
+						 24, // l
+						  0, // m - placeholder/blank
+						 84, // n
+						 92, // o
+						  0, // p - placeholder/blank
+						103, // q
+						 80, // r
+						  0, // s - placeholder/blank
+						120, // t
+						 28};// u
 
 static u8 seg_bits(u8 value) {
-	int i;
-	u8 bits = 0;
+//	int i;
+//	u8 bits = 0;
 	u8 num_index = 11; // defaults to blank
 	// colon
 	if(value==46) {
@@ -154,15 +165,19 @@ static u8 seg_bits(u8 value) {
 	}
 	// opening square bracket -> C
 	else if(value==91) {
-		num_index = 16;
+		num_index = 17;
 	}
 	// closing square bracket
-	else if(value==92) {
+	else if(value==93) {
 		num_index = 12;
+	}
+	// hyphen
+	else if(value==45) {
+		num_index = 13;
 	}
 	// underscore
 	else if(value==95) {
-		num_index = 13;
+		num_index = 14;
 	}
 	// ascii numbers
 	else if(value>47 && value<58) {
@@ -170,18 +185,19 @@ static u8 seg_bits(u8 value) {
 	}
 	// capital letters ASCII 65 - 90
 	else if(value>64 && value<91) {
-		num_index=value-51;
+		num_index=value-50;
 	}
 	// lower case letters ASCII 98 - 117
 	else if(value>97 && value<118) {
-		num_index=value-58;
+		num_index=value-57;
 	}
 
-	for( i=0; i<8; i++) {
-		if (num[num_index][i])
-			bits |= 1 << i;
-	}
-	return bits;
+//	for( i=0; i<8; i++) {
+//		if (num[num_index][i])
+//			bits |= 1 << i;
+//	}
+//	return bits;
+	return ledbits[num_index];
 }
 
 static void send_report_request_to_device(struct ftec_drv_data *drv_data)
