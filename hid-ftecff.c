@@ -84,16 +84,16 @@ static void fix_values(s32 *values) {
 }
 
 /*
- 8 7 6 5 4 3 2 1
+ bits 7 6 5 4 3 2 1 0
  7 segment bits and dot
-      1
-    6   2
-      7
-    5   3
-      4   8
+      0
+    5   1
+      6
+    4   2
+      3   7
  */
 
-static u8 ledbits[61] ={ 63, // 0
+static u8 segbits[61] ={ 63, // 0
 						  6, // 1
 						 91, // 2
 						 87, // 3
@@ -192,12 +192,7 @@ static u8 seg_bits(u8 value) {
 		num_index=value-57;
 	}
 
-//	for( i=0; i<8; i++) {
-//		if (num[num_index][i])
-//			bits |= 1 << i;
-//	}
-//	return bits;
-	return ledbits[num_index];
+	return segbits[num_index];
 }
 
 static void send_report_request_to_device(struct ftec_drv_data *drv_data)
@@ -706,9 +701,9 @@ static int ftec_init_led(struct hid_device *hid) {
 		value[0] = 0xf8;
 		value[1] = 0x09;
 		value[2] = 0x08;		
-		value[3] = 0x01;
+		value[3] = 0x00;//0x01; // init green led to indicate driver happiness
 		value[4] = 0x00;
-		value[5] = 0x00;
+		value[5] = 0x01; // short red blip
 		value[6] = 0x00;
 
 		send_report_request_to_device(drv_data);
