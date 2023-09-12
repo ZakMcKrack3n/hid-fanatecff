@@ -91,109 +91,44 @@ static void fix_values(s32 *values) {
       6
     4   2
       3   7
- */
 
-static u8 segbits[61] ={ 63, // 0
-						  6, // 1
-						 91, // 2
-						 87, // 3
-						102, // 4
-						109, // 5
-						125, // 6
-						  7, // 7
-						127, // 8
-						103, // 9
-						128, // dot
-						  0, // blank
-						 15, // ]
-						 64, // -
-						  8, // _
-						119, // A
-						127, // B
-						 57, // C
-						  0, // D - placeholder/blank
-						121, // E
-						113, // F
-						 61, // G
-						118, // H
-						  6, // I
-						 14, // J
-						  0, // K - placeholder/blank
-						 56, // L
-						  0, // M - placeholder/blank
-						  0, // N - placeholder/blank
-						 63, // O
-						115, // P
-						  0, // Q - placeholder/blank
-						  0, // R - placeholder/blank
-						109, // S
-						  0, // T - placeholder/blank
-						 62, // U
-						  0, // V - placeholder/blank
-						  0, // W - placeholder/blank
-						  0, // X - placeholder/blank
-						110, // Y
-						 91, // Z
-						124, // b
-						 88, // c
-						 94, // d
-						  0, // e - placeholder/blank
-						  0, // f - placeholder/blank
-						  0, // g - placeholder/blank
-						116, // h
-					      4, // i
-						 12, // j
-						  0, // k - placeholder/blank
-						 24, // l
-						  0, // m - placeholder/blank
-						 84, // n
-						 92, // o
-						  0, // p - placeholder/blank
-						103, // q
-						 80, // r
-						  0, // s - placeholder/blank
-						120, // t
-						 28};// u
+0x3F // 0
+0x06 // 1 or I
+0x5B // 2
+0x4F // 3
+0x66 // 4
+0x6D // 5 or S
+0x7D // 6 or b
+0x07 // 7
+0x7F // 8 or B
+0x67 // 9 or q
+0x80 // dot
+0x00 // blank
+0x0F // ]
+0x40 // -
+0x08 // _
+0x77 // A
+0x39 // C
+0x79 // E
+0x71 // F
+0x3D // G
+0x76 // H
+0x1E // J
+0x38 // L
+0x73 // P
+0x3E // U
+0x58 // c
+0x5E // d
+0x74 // h
+0x04 // i
+0x54 // n
+0x5C // o
+0x50 // r
+0x78 // t
+0x1c // u
+0x66 // Y
+*/
 
-static u8 seg_bits(u8 value) {
-//	int i;
-//	u8 bits = 0;
-	u8 num_index = 11; // defaults to blank
-	// colon
-	if(value==46) {
-		num_index = 10;
-	}
-	// opening square bracket -> C
-	else if(value==91) {
-		num_index = 17;
-	}
-	// closing square bracket
-	else if(value==93) {
-		num_index = 12;
-	}
-	// hyphen
-	else if(value==45) {
-		num_index = 13;
-	}
-	// underscore
-	else if(value==95) {
-		num_index = 14;
-	}
-	// ascii numbers
-	else if(value>47 && value<58) {
-		num_index=value-48;
-	}
-	// capital letters ASCII 65 - 90
-	else if(value>64 && value<91) {
-		num_index=value-50;
-	}
-	// lower case letters ASCII 98 - 117
-	else if(value>97 && value<118) {
-		num_index=value-57;
-	}
-
-	return segbits[num_index];
-}
 
 static void send_report_request_to_device(struct ftec_drv_data *drv_data)
 {
@@ -361,12 +296,14 @@ static ssize_t ftec_set_display(struct device *dev, struct device_attribute *att
 	struct ftec_drv_data *drv_data;
 	unsigned long flags;
 	s32 *value;
-//	s16 val;
-//
-//	if (kstrtos16(buf, 0, &val) != 0) {
-//		hid_err(hid, "Invalid value %s!\n", buf);
-//		return -EINVAL;
-//	}
+	u32 val;
+
+	if (kstrtou32(buf, 0, &val) != 0) {
+		hid_err(hid, "Invalid value %s!\n", buf);
+		return -EINVAL;
+	}
+
+	dbg_hid(" ... set_display %02X\n", val);
 
 	drv_data = hid_get_drvdata(hid);
 	if (!drv_data) {
@@ -383,15 +320,9 @@ static ssize_t ftec_set_display(struct device *dev, struct device_attribute *att
 	value[1] = 0x09;
 	value[2] = 0x01;
 	value[3] = 0x02;
-	value[4] = 0x00;
-	value[5] = 0x00;
-	value[6] = 0x00;
-
-//	if (val>=0) {
-		value[4] = seg_bits(buf[0]);
-		value[5] = seg_bits(buf[1]);
-		value[6] = seg_bits(buf[2]);
-//	}
+	value[4] = (val>>16)&0xff;
+	value[5] = (val>>8)&0xff;
+	value[6] = (val)&0xff;
 
 	send_report_request_to_device(drv_data);
 	spin_unlock_irqrestore(&drv_data->report_lock, flags);
@@ -703,7 +634,7 @@ static int ftec_init_led(struct hid_device *hid) {
 		value[2] = 0x08;		
 		value[3] = 0x00;//0x01; // init green led to indicate driver happiness
 		value[4] = 0x00;
-		value[5] = 0x01; // short red blip
+		value[5] = 0x01; // short red blip?
 		value[6] = 0x00;
 
 		send_report_request_to_device(drv_data);
@@ -1285,7 +1216,7 @@ int ftecff_init(struct hid_device *hdev) {
 	CREATE_SYSFS_FILE(wheel_id)
 	
 
-	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID) {
+	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID || hdev->product == CSL_DD_WHEELBASE_DEVICE_ID) { //FIXME test if dd base accepts commands
 		CREATE_SYSFS_FILE(RESET)
 		CREATE_SYSFS_FILE(SLOT)
 		CREATE_SYSFS_FILE(SEN)
@@ -1328,7 +1259,7 @@ void ftecff_remove(struct hid_device *hdev)
 	device_remove_file(&hdev->dev, &dev_attr_range);
 	device_remove_file(&hdev->dev, &dev_attr_wheel_id);
 
-	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID) {
+	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID || hdev->product == CSL_DD_WHEELBASE_DEVICE_ID) { //FIXME test DD with slots
 		device_remove_file(&hdev->dev, &dev_attr_RESET);
 		device_remove_file(&hdev->dev, &dev_attr_SLOT);
 		device_remove_file(&hdev->dev, &dev_attr_SEN);
