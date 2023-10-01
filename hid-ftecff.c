@@ -83,52 +83,27 @@ static void fix_values(s32 *values) {
 	}
 }
 
-/*
- bits 7 6 5 4 3 2 1 0
- 7 segment bits and dot
-      0
-    5   1
-      6
-    4   2
-      3   7
+static u8 num[11][8] = {  { 1,1,1,1,1,1,0,0 },  // 0
+						{ 0,1,1,0,0,0,0,0 },  // 1
+						{ 1,1,0,1,1,0,1,0 },  // 2
+						{ 1,1,1,1,0,0,1,0 },  // 3
+						{ 0,1,1,0,0,1,1,0 },  // 4
+						{ 1,0,1,1,0,1,1,0 },  // 5
+						{ 1,0,1,1,1,1,1,0 },  // 6
+						{ 1,1,1,0,0,0,0,0 },  // 7
+						{ 1,1,1,1,1,1,1,0 },  // 8
+						{ 1,1,1,0,0,1,1,0 },  // 9
+						{ 0,0,0,0,0,0,0,1}};  // dot
+static u8 seg_bits(u8 value) {
+	int i;
+	u8 bits = 0;
 
-0x3F // 0
-0x06 // 1 or I
-0x5B // 2
-0x4F // 3
-0x66 // 4
-0x6D // 5 or S
-0x7D // 6 or b
-0x07 // 7
-0x7F // 8 or B
-0x67 // 9 or q
-0x80 // dot
-0x00 // blank
-0x0F // ]
-0x40 // -
-0x08 // _
-0x77 // A
-0x39 // C
-0x79 // E
-0x71 // F
-0x3D // G
-0x76 // H
-0x1E // J
-0x38 // L
-0x73 // P
-0x3E // U
-0x58 // c
-0x5E // d
-0x74 // h
-0x04 // i
-0x54 // n
-0x5C // o
-0x50 // r
-0x78 // t
-0x1c // u
-0x66 // Y
-*/
-
+	for( i=0; i<8; i++) {
+		if (num[value][i]) 
+			bits |= 1 << i;
+	}
+	return bits;
+}
 
 static void send_report_request_to_device(struct ftec_drv_data *drv_data)
 {
@@ -296,14 +271,18 @@ static ssize_t ftec_set_display(struct device *dev, struct device_attribute *att
 	struct ftec_drv_data *drv_data;
 	unsigned long flags;
 	s32 *value;
-	u32 val;
+	//s16 val;
+	s32 val;
 
+//	if (kstrtos16(buf, 0, &val) != 0) {
+//		hid_err(hid, "Invalid value %s!\n", buf);
+//		val = -1;
+//		return -EINVAL;
+//	}
 	if (kstrtou32(buf, 0, &val) != 0) {
 		hid_err(hid, "Invalid value %s!\n", buf);
 		return -EINVAL;
 	}
-
-	dbg_hid(" ... set_display %02X\n", val);
 
 	drv_data = hid_get_drvdata(hid);
 	if (!drv_data) {
@@ -320,9 +299,65 @@ static ssize_t ftec_set_display(struct device *dev, struct device_attribute *att
 	value[1] = 0x09;
 	value[2] = 0x01;
 	value[3] = 0x02;
-	value[4] = (val>>16)&0xff;
-	value[5] = (val>>8)&0xff;
-	value[6] = (val)&0xff;
+	value[4] = 0x00;
+	value[5] = 0x00;
+	value[6] = 0x00;
+
+	if (val>=0 && buf[1] != 'x') {
+		value[4] = seg_bits((val/100)%100);
+		value[5] = seg_bits((val/10)%10);
+		value[6] = seg_bits(val%10);
+	}
+	/*
+	 bits 7 6 5 4 3 2 1 0
+	 7 segment bits and dot
+	      0
+	    5   1
+	      6
+	    4   2
+	      3   7
+
+	0x3F // 0
+	0x06 // 1 or I
+	0x5B // 2
+	0x4F // 3
+	0x66 // 4
+	0x6D // 5 or S
+	0x7D // 6 or b
+	0x07 // 7
+	0x7F // 8 or B
+	0x67 // 9 or q
+	0x80 // dot
+	0x00 // blank
+	0x0F // ]
+	0x40 // -
+	0x08 // _
+	0x77 // A
+	0x39 // C
+	0x79 // E
+	0x71 // F
+	0x3D // G
+	0x76 // H
+	0x1E // J
+	0x38 // L
+	0x73 // P
+	0x3E // U
+	0x58 // c
+	0x5E // d
+	0x74 // h
+	0x04 // i
+	0x54 // n
+	0x5C // o
+	0x50 // r
+	0x78 // t
+	0x1c // u
+	0x66 // Y
+	*/
+	else {
+		value[4] = (val>>16)&0xff;
+		value[5] = (val>>8)&0xff;
+		value[6] = (val)&0xff;
+	}
 
 	send_report_request_to_device(drv_data);
 	spin_unlock_irqrestore(&drv_data->report_lock, flags);
@@ -330,6 +365,7 @@ static ssize_t ftec_set_display(struct device *dev, struct device_attribute *att
 	return count;
 }
 static DEVICE_ATTR(display, S_IWUSR | S_IWGRP, NULL, ftec_set_display);
+
 
 static int ftec_tuning_read(struct hid_device *hid, u8 *buf) {
 	struct usb_device *dev = interface_to_usbdev(to_usb_interface(hid->dev.parent));
@@ -1216,7 +1252,7 @@ int ftecff_init(struct hid_device *hdev) {
 	CREATE_SYSFS_FILE(wheel_id)
 	
 
-	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID || hdev->product == CSL_DD_WHEELBASE_DEVICE_ID) { //FIXME test if dd base accepts commands
+	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID) {
 		CREATE_SYSFS_FILE(RESET)
 		CREATE_SYSFS_FILE(SLOT)
 		CREATE_SYSFS_FILE(SEN)
@@ -1259,7 +1295,7 @@ void ftecff_remove(struct hid_device *hdev)
 	device_remove_file(&hdev->dev, &dev_attr_range);
 	device_remove_file(&hdev->dev, &dev_attr_wheel_id);
 
-	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID || hdev->product == CSL_DD_WHEELBASE_DEVICE_ID) { //FIXME test DD with slots
+	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID) {
 		device_remove_file(&hdev->dev, &dev_attr_RESET);
 		device_remove_file(&hdev->dev, &dev_attr_SLOT);
 		device_remove_file(&hdev->dev, &dev_attr_SEN);
