@@ -14,6 +14,9 @@
 int init_range = 0;
 module_param(init_range, int, 0);
 
+bool init_led = false;
+module_param(init_led, bool, false);
+
 #define DEFAULT_TIMER_PERIOD 2
 
 #define FF_EFFECT_STARTED 0
@@ -272,9 +275,9 @@ static ssize_t ftec_set_display(struct device *dev, struct device_attribute *att
 	struct ftec_drv_data *drv_data;
 	unsigned long flags;
 	s32 *value;
-	s16 val;
-
-	if (kstrtos16(buf, 0, &val) != 0) {
+	s32 val;
+	
+	if (kstrtou32(buf, 0, &val) != 0) {
 		hid_err(hid, "Invalid value %s!\n", buf);
 		return -EINVAL;
 	}
@@ -298,10 +301,60 @@ static ssize_t ftec_set_display(struct device *dev, struct device_attribute *att
 	value[5] = 0x00;
 	value[6] = 0x00;
 
-	if (val>=0) {
+	if (val>=0 && buf[1] != 'x') {
 		value[4] = seg_bits((val/100)%100);
 		value[5] = seg_bits((val/10)%10);
 		value[6] = seg_bits(val%10);
+	}
+	/*
+	 bits 7 6 5 4 3 2 1 0
+	 7 segment bits and dot
+	      0
+	    5   1
+	      6
+	    4   2
+	      3   7
+
+	0x3F // 0
+	0x06 // 1 or I
+	0x5B // 2
+	0x4F // 3
+	0x66 // 4
+	0x6D // 5 or S
+	0x7D // 6 or b
+	0x07 // 7
+	0x7F // 8 or B
+	0x67 // 9 or q
+	0x80 // dot
+	0x00 // blank
+	0x0F // ]
+	0x40 // -
+	0x08 // _
+	0x77 // A
+	0x39 // C
+	0x79 // E
+	0x71 // F
+	0x3D // G
+	0x76 // H
+	0x1E // J
+	0x38 // L
+	0x73 // P
+	0x3E // U
+	0x58 // c
+	0x5E // d
+	0x74 // h
+	0x04 // i
+	0x54 // n
+	0x5C // o
+	0x50 // r
+	0x78 // t
+	0x1c // u
+	0x66 // Y
+	*/
+	else {
+		value[4] = (val>>16)&0xff;
+		value[5] = (val>>8)&0xff;
+		value[6] = (val)&0xff;
 	}
 
 	send_report_request_to_device(drv_data);
@@ -612,7 +665,7 @@ static int ftec_init_led(struct hid_device *hid) {
 		value[0] = 0xf8;
 		value[1] = 0x09;
 		value[2] = 0x08;		
-		value[3] = 0x01;
+		value[3] = init_led ? 0x01 : 0x00;
 		value[4] = 0x00;
 		value[5] = 0x00;
 		value[6] = 0x00;
