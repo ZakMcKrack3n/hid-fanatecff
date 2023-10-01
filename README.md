@@ -38,21 +38,24 @@ If you don't want to compile and install manually, following is a list of known 
 
 ### General
 
-Support for a bunch of effects, mostly copy-pasted from [new-lg4ff](https://github.com/berarma/new-lg4ff). _Note:_ only tested with CSL Elite Wheelbase.
+Support for a bunch of effects, mostly copy-pasted from [new-lg4ff](https://github.com/berarma/new-lg4ff). _Note:_ only tested with CSL Elite Wheelbase and CSL DD in native / ClubSport Wheel Base V2.5 mode.
 Currently not supported effects: FF_FRICTION, FF_INERTIA
 
 ### FFB in specific Games
 
-Games I test (more or less regularly) and that are expected to work:
+Games I test (more or less regularly) and that are expected/reported to work:
 
 * AC / ACC
 * Dirt2
 * rFactor2
+* Automobilista 2
+* Dirt Rally 1 / 2
 
 Games that don't work properly:
 
 * F1 202X (#22)
 * BeamNG.drive (#23)
+* Automobilista
 
 ### Device specific
 
