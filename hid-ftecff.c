@@ -702,8 +702,8 @@ static int ftec_init_led(struct hid_device *hid) {
 		value[0] = 0xf8;
 		value[1] = 0x09;
 		value[2] = 0x08;
-		value[3] = 0x01; // set green led to indicate driver is loaded
-		value[4] = 0x00;
+		value[3] = 0x00; // set green led to indicate driver is loaded
+		value[4] = 0x00; // first 3 bits blue // next 3 bits red // next 3 green
 		value[5] = 0x00;
 		value[6] = 0x00;
 
