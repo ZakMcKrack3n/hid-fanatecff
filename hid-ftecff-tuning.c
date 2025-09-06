@@ -291,6 +291,13 @@ int ftec_tuning_classdev_register(struct device *parent,
 		CREATE_SYSFS_FILE(NFR)
 		CREATE_SYSFS_FILE(NIN)
 		CREATE_SYSFS_FILE(INT)
+		CREATE_SYSFS_FILE(FFS)
+		// this is 50 on CSL DD ??
+		CREATE_SYSFS_FILE(U0F)
+		// this is 3 on CSL DD ??
+		CREATE_SYSFS_FILE(U12)
+		// this is 1 on CSL DD ??
+		CREATE_SYSFS_FILE(U13)
 	}	
 	// FIXME: this is ClubSport DD specific, but not yet understood how
 	//  to discriminate these

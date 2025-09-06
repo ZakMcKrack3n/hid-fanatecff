@@ -121,18 +121,22 @@ struct ftec_drv_data {
 };
 
 #define FTEC_TUNING_ATTRS \
-	FTEC_TUNING_ATTR(SLOT, 0x02, "Slot", ftec_conv_noop_to, ftec_conv_noop_from, 1, 5) \
+	FTEC_TUNING_ATTR(SLOT, 0x02, "Slot", ftec_conv_noop_to, ftec_conv_noop_from, 1, 6) \
 	FTEC_TUNING_ATTR(SEN, 0x03, "Sensivity", ftec_conv_sens_to, ftec_conv_sens_from, 90, 0) \
 	FTEC_TUNING_ATTR(FF, 0x04, "Force Feedback Strength", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
 	FTEC_TUNING_ATTR(SHO, 0x05, "Wheel Vibration Motor", ftec_conv_times_ten, ftec_conv_div_ten, 0, 100) \
 	FTEC_TUNING_ATTR(BLI, 0x06, "Break Level Indicator", ftec_conv_noop_to, ftec_conv_noop_from, 0, 101) \
+	FTEC_TUNING_ATTR(FFS, 0x07, "Force Feedback Scaling", ftec_conv_noop_to, ftec_conv_noop_from, 0, 1) \
 	FTEC_TUNING_ATTR(DRI, 0x09, "Drift Mode", ftec_conv_signed_to, ftec_conv_noop_from, -5, 3) \
 	FTEC_TUNING_ATTR(FOR, 0x0a, "Force Effect Strength", ftec_conv_times_ten, ftec_conv_div_ten, 0, 120) \
 	FTEC_TUNING_ATTR(SPR, 0x0b, "Spring Effect Strength", ftec_conv_times_ten, ftec_conv_div_ten, 0, 120) \
 	FTEC_TUNING_ATTR(DPR, 0x0c, "Damper Effect Strength", ftec_conv_times_ten, ftec_conv_div_ten, 0, 120) \
 	FTEC_TUNING_ATTR(NDP, 0x0d, "Natural Damber", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
 	FTEC_TUNING_ATTR(NFR, 0x0e, "Natural Friction", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
+	FTEC_TUNING_ATTR(U0F, 0x0f, "Unknown 0x0f", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
 	FTEC_TUNING_ATTR(FEI, 0x11, "Force Effect Intensity", ftec_conv_noop_to, ftec_conv_steps_ten, 0, 100) \
+	FTEC_TUNING_ATTR(U12, 0x12, "Unknown 0x12", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
+	FTEC_TUNING_ATTR(U13, 0x13, "Unknown 0x13", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
 	FTEC_TUNING_ATTR(INT, 0x14, "FFB Interpolation Filter", ftec_conv_noop_to, ftec_conv_noop_from, 0, 20) \
 	FTEC_TUNING_ATTR(NIN, 0x15, "Natural Inertia", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
 	FTEC_TUNING_ATTR(FUL, 0x16, "FullForce", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
