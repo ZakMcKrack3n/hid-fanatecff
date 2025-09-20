@@ -347,6 +347,7 @@ void ftec_tuning_classdev_unregister(struct ftec_tuning_classdev *ftec_tuning_cd
 		REMOVE_SYSFS_FILE(NFR)
 		REMOVE_SYSFS_FILE(NIN)
 		REMOVE_SYSFS_FILE(INT)
+		REMOVE_SYSFS_FILE(FFS)
 	}	
 	if (hdev->product == CSL_DD_WHEELBASE_DEVICE_ID) {
 		REMOVE_SYSFS_FILE(FUL)
