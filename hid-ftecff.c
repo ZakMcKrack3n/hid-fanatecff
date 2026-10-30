@@ -27,9 +27,17 @@ module_param(debug_raw_event, ulong, 0);
 #define DEBUG_RAW_EVENT_WHEEL_REPORT 0
 #define DEBUG_RAW_EVENT_TUNING_REPORT 1
 
-// parameter to enable 8bit damper/inertia/friction coefficients
+// parameter to enable 8bit damper/inertia/friction coefficients, modifiable at runtime
 int enable_highres_dynamic_effects = 0;
 module_param(enable_highres_dynamic_effects, int, 0);
+
+// parameter to invert spring effect direction
+int spring_invert = 0;
+module_param(spring_invert, int, 0644);
+
+// parameter to scale spring effect magnitude percentage, modifiable at runtime
+int spring_scale = 100;
+module_param(spring_scale, int, 0644);
 
 #define DEFAULT_TIMER_PERIOD 2
 
@@ -697,15 +705,31 @@ static void ftecff_update_slot(struct ftecff_slot *slot,
 		}
 		break;
 	case FF_SPRING:
-		d1 = SCALE_VALUE_U16(((parameters->d1) + 0x8000) & 0xffff, 11);
-		d2 = SCALE_VALUE_U16(((parameters->d2) + 0x8000) & 0xffff, 11);
-		s1 = parameters->k1 < 0;
-		s2 = parameters->k2 < 0;
-		slot->current_cmd[2] = d1 >> 3;
-		slot->current_cmd[3] = d2 >> 3;
-		slot->current_cmd[4] = (SCALE_COEFF(parameters->k2, 4) << 4) +
-				       SCALE_COEFF(parameters->k1, 4);
-		slot->current_cmd[6] = SCALE_VALUE_U16(parameters->clip, 8);
+		int k1 = parameters->k1;
+        int k2 = parameters->k2;
+        // Apply percentage scaling if configured
+        if (spring_scale != 100) {
+            k1 = (k1 * spring_scale) / 100;
+            k2 = (k2 * spring_scale) / 100;
+        }
+        s1 = k1 < 0;
+        s2 = k2 < 0;
+        // Calculate raw 16-bit displacement values
+        u32 raw_d1 = ((parameters->d1) + 0x8000) & 0xffff;
+        u32 raw_d2 = ((parameters->d2) + 0x8000) & 0xffff;
+        // Invert d1 and d2 across the center point if spring_invert is enabled
+        if (spring_invert) {
+            raw_d1 = 0xffff - raw_d1;
+            raw_d2 = 0xffff - raw_d2;
+        }
+        d1 = SCALE_VALUE_U16(raw_d1, 11);
+        d2 = SCALE_VALUE_U16(raw_d2, 11);
+        slot->current_cmd[2] = d1 >> 3;
+        slot->current_cmd[3] = d2 >> 3;
+        slot->current_cmd[4] = (SCALE_COEFF(k2, 4) << 4) +
+                                SCALE_COEFF(k1, 4);
+        slot->current_cmd[6] = SCALE_VALUE_U16(parameters->clip, 8);
+        break;
 		break;
 	case FF_DAMPER:
 	case FF_INERTIA:
@@ -1222,7 +1246,7 @@ int ftecff_init(struct hid_device *hdev)
 	/* init sequence */
 	{
 		/* tuning menu initialization? */
-		/*
+		
 		if (drv_data->quirks & FTEC_TUNING_MENU) {
 			u8 buf[] = {
 				0xff, 0x08, 0x01, 0xff, 0x0, 0x0, 0x0, 0x0
@@ -1236,7 +1260,7 @@ int ftecff_init(struct hid_device *hdev)
 			buf[2] = 0x02;
 			ret = hid_hw_output_report(hdev, &buf[0], 8);
 		}
-		*/
+		
 
 		/* common initialization? */
 		spin_lock_irqsave(&drv_data->report_lock, flags);
